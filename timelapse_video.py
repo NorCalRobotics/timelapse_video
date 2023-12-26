@@ -25,11 +25,10 @@ def capture_timelapse_video(** settings):
         fps = settings['fps']
         frame_size = tuple(settings.get('frame_size', []))
         fourcc = cv2.VideoWriter_fourcc(*(settings['fourcc']))
-        date_time = datetime.now().strftime(settings['date_time_fmt'])
-        mp4_filename = settings['mp4_filename_fmt'] % date_time
         vidcap_camera_index = settings.get("vidcap_camera_index", 0)
+        mp4_filename = settings['mp4_filename']
     except KeyError as ke:
-        raise TypeError(ke.args[0] + ' is a required argument')
+        raise TypeError(ke.args[0] + ' is a required named argument')
 
     # Start capturing video from Camera
     vidcap = cv2.VideoCapture(vidcap_camera_index)
@@ -104,6 +103,15 @@ def capture_timelapse_video(** settings):
 def main():
     # settings
     settings = json.load(open('config.json', 'r'))
+
+    try:
+        date_time = datetime.now().strftime(settings['date_time_fmt'])
+        mp4_filename = settings['mp4_filename_fmt'] % date_time
+    except KeyError as ke:
+        raise TypeError(ke.args[0] + ' is a required config setting')
+
+    settings['mp4_filename'] = mp4_filename
+
     capture_timelapse_video(** settings)
 
 
