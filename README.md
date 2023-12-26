@@ -1,7 +1,9 @@
 # Live video capture mode (timelapse_video.py)
 ## Configuration:
 Edit the file [config.json](config.json) to set up the time-lapse video capture process.
-seconds_per_frame": 30,
+#### seconds_per_frame setting
+Seconds of real time per frame in output video
+Example value: 30
 #### fps setting
 Frames per second in the output video.
 Example value: 30.0
