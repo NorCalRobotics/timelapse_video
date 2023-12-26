@@ -1,3 +1,5 @@
+# Sample output:
+[![Christmas time-lapse from Mount Aukum (2023)](https://spee.ch/e/c223b166e4d98c55.jpg)](https://www.youtube.com/watch?v=4TyJCgPNbwM)
 # Configuration:
 Edit the file [config.json](config.json) to set up the time-lapse video capture process.
 ## smc_cam_hostname setting
