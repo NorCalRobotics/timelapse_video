@@ -1,9 +1,11 @@
 {
+  "smc_cam_hostname": "10.10.87.118",
   "seconds_per_frame": 30,
   "fps": 60.0,
-  "frame_size": [1280, 720],
+  "frame_size": [616, 480],
   "fourcc": "mp4v",
   "date_time_fmt": "%Y%m%d_%H%M%S",
   "mp4_filename_fmt": "C:\\Users\\Public\\Videos\\output_%s.mp4",
-  "vidcap_camera_index": 0
+  "img_cap_dir": "C:\\Users\\Public\\Pictures",
+  "delete_jpegs": false
 }
