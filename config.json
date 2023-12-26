@@ -1,0 +1,9 @@
+{
+  "seconds_per_frame": 30,
+  "fps": 60.0,
+  "frame_size": [1280, 720],
+  "fourcc": "mp4v",
+  "date_time_fmt": "%Y%m%d_%H%M%S",
+  "mp4_filename_fmt": "C:\\Users\\Public\\Videos\\output_%s.mp4",
+  "vidcap_camera_index": 0
+}
