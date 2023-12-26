@@ -1,6 +1,4 @@
 import numpy as np
-import cv2
-import os
 
 
 def adjust_image_colors(img):
