@@ -1,0 +1,8 @@
+{
+  "fps": 40.0,
+  "frame_size": [1920, 1080],
+  "fourcc": "mp4v",
+  "mp4_filename": "C:\\Users\\Public\\Videos\\output.mp4",
+  "img_cap_dir": "C:\\Users\\Public",
+  "img_glob_pattern": "*.jpg"
+}
