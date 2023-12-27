@@ -1,44 +1,17 @@
-import time
 import cv2
 import json
 from datetime import datetime
 from signal import signal, SIGINT
 from auto_fix_image_levels import adjust_image_colors
-
-# Set up for the script to gracefully exit on SIGINT
-ctrl_c_pressed = False
+from timelapse_video import ctrl_c_pressed, ctrl_c_handler, get_video_capture
 
 
-def ctrl_c_handler():
-    global ctrl_c_pressed
-
-    ctrl_c_pressed = True
-
-
-def get_video_capture(vidcap_camera_index, frame_size, settings):
-    # Start capturing video from Camera
-    vidcap = cv2.VideoCapture(vidcap_camera_index)
-    if "CAP_PROP_CHANNEL" in settings:
-        print("Setting video channel: %f" % settings["CAP_PROP_CHANNEL"])
-        vidcap.set(cv2.CAP_PROP_CHANNEL, settings["CAP_PROP_CHANNEL"])
-    if len(frame_size) > 1:
-        print("Setting video resolution: %dx%d" % frame_size)
-        vidcap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_size[0])
-        vidcap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_size[1])
-    vidcap_w = int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    vidcap_h = int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    print("Video resolution: %dx%d" % (vidcap_w, vidcap_h))
-
-    return vidcap, vidcap_w, vidcap_h
-
-
-def capture_timelapse_video(** settings):
+def capture_stop_motion_video(** settings):
     global ctrl_c_pressed
 
     ctrl_c_pressed = False
 
     try:
-        seconds_per_frame = settings['seconds_per_frame']
         fps = settings['fps']
         frame_size = tuple(settings.get('frame_size', []))
         fourcc = cv2.VideoWriter_fourcc(*(settings['fourcc']))
@@ -48,28 +21,26 @@ def capture_timelapse_video(** settings):
         raise TypeError(ke.args[0] + ' is a required named argument')
 
     # Start capturing video from Camera
-    vidcap,vidcap_w, vidcap_h = get_video_capture(vidcap_camera_index, frame_size, settings)
+    vidcap, vidcap_w, vidcap_h = get_video_capture(vidcap_camera_index, frame_size, settings)
     font = cv2.FONT_HERSHEY_SIMPLEX
 
-    # Open the timelapse video output
+    # Open the stop-motion video output
     mp4_out = cv2.VideoWriter(mp4_filename, fourcc, fps, (vidcap_w, vidcap_h))
 
     signal(SIGINT, ctrl_c_handler)
 
     # Loop until SIGINT, Ctrl-C, or Escape
     instr1 = "Press ESC to exit."
-    last_time = time.monotonic()  # None
+    instr2 = "Press F to capture a frame."
     frame_count = 0
+    k = None
     frame_count_msg = "%d frames captured" % frame_count
     while not ctrl_c_pressed:
         try:
             # Take each frame
             _, img = vidcap.read()
 
-            current_time = time.monotonic()
-            if last_time is None or (current_time - last_time) > seconds_per_frame:
-                last_time = current_time
-
+            if k is not None and k in [ord('f'), ord('F')]:
                 # Adjust the image's levels
                 # This helps with lighting changes over time
                 selected_frame = adjust_image_colors(img)
@@ -84,11 +55,8 @@ def capture_timelapse_video(** settings):
                 cv2.imshow('Color-corrected frame', selected_frame)
 
             cv2.putText(img, instr1, (20, 100), font, 0.4, (255, 255, 255), 1)
-            cv2.putText(img, frame_count_msg, (20, 116), font, 0.4, (255, 255, 255), 1)
-            if last_time is not None:
-                seconds_until_next_frame = seconds_per_frame - (current_time - last_time)
-                message = "%f seconds until next frame" % seconds_until_next_frame
-                cv2.putText(img, message, (20, 132), font, 0.4, (255, 255, 255), 1)
+            cv2.putText(img, instr2, (20, 116), font, 0.4, (255, 255, 255), 1)
+            cv2.putText(img, frame_count_msg, (20, 132), font, 0.4, (255, 255, 255), 1)
 
             # Display the frame to the user, creating a live preview window
             cv2.imshow('Live preview', img)
@@ -119,8 +87,9 @@ def main():
 
     settings['mp4_filename'] = mp4_filename
 
-    capture_timelapse_video(** settings)
+    capture_stop_motion_video(** settings)
 
 
 if __name__ == "__main__":
     main()
+
