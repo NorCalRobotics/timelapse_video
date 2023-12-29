@@ -24,6 +24,8 @@ Example value: "C:\\Users\\Public\\Videos\\output_%s.mp4",
 #### vidcap_camera_index
 Video source number on the PC to use.
 Example value: 0
+This can be set to a URL string as well, for IP cameras, as OpenCV supports capture from such devices.
+Example value: "http://192.168.1.101/video"
 #### CAP_PROP_CHANNEL (optional)
 If this is specified, then CAP_PROP_CHANNEL is set to the given value.
 Example value: 40.1
