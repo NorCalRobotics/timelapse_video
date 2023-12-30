@@ -81,7 +81,10 @@ def capture_timelapse_video(** settings):
                 frame_count_msg = "%d frames captured" % frame_count
 
                 # Display the adjusted frame to the user
-                cv2.imshow('Color-corrected frame', selected_frame)
+                try:
+                    cv2.imshow('Color-corrected frame', selected_frame)
+                except cv2.error:
+                    break
 
             cv2.putText(img, instr1, (20, 100), font, 0.4, (255, 255, 255), 1)
             cv2.putText(img, frame_count_msg, (20, 116), font, 0.4, (255, 255, 255), 1)
@@ -91,7 +94,10 @@ def capture_timelapse_video(** settings):
                 cv2.putText(img, message, (20, 132), font, 0.4, (255, 255, 255), 1)
 
             # Display the frame to the user, creating a live preview window
-            cv2.imshow('Live preview', img)
+            try:
+                cv2.imshow('Live preview', img)
+            except cv2.error:
+                break
 
             k = cv2.waitKey(5) & 0xFF
             if k == 27:
