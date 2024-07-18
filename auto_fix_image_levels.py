@@ -1,16 +1,37 @@
+import cv2
 import numpy as np
 
 
-def adjust_image_colors(img):
-    in_black = np.array([0, 0, 0], dtype=np.float32)
-    in_white = np.array([255, 255, 255], dtype=np.float32)
-    in_gamma = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+def adjust_image_colors(image, clip_hist_percent=2):
+    # Calculate grayscale histogram
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+    hist_size = len(hist)
 
-    out_black = np.array([0, 0, 0], dtype=np.float32)
-    out_white = np.array([255, 255, 255], dtype=np.float32)
+    # Calculate cumulative distribution from the histogram
+    accumulator = [float(hist[0])]
+    for index in range(1, hist_size):
+        accumulator.append(accumulator[index - 1] + float(hist[index]))
 
-    img = np.clip((img - in_black) / (in_white - in_black), 0, 255)
-    img = (img ** (1 / in_gamma)) * (out_white - out_black) + out_black
-    img = np.clip(img, 0, 255).astype(np.uint8)
+    # Locate points to clip
+    maximum = accumulator[-1]
+    clip_hist_percent *= (maximum / 100.0)
+    clip_hist_percent /= 2.0
 
-    return img
+    # Locate left cut
+    minimum_gray = 0
+    while accumulator[minimum_gray] < clip_hist_percent:
+        minimum_gray += 1
+
+    # Locate right cut
+    maximum_gray = hist_size - 1
+    while accumulator[maximum_gray] >= (maximum - clip_hist_percent):
+        maximum_gray -= 1
+
+    # Calculate alpha and beta values
+    alpha = 255 / (maximum_gray - minimum_gray)
+    beta = -minimum_gray * alpha
+
+    auto_result = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+
+    return auto_result
