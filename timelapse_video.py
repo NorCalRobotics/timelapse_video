@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import time
 import cv2
 import json
@@ -28,6 +29,16 @@ def get_video_capture(vidcap_camera_index, frame_size, settings):
     vidcap_w = int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH))
     vidcap_h = int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     print("Video resolution: %dx%d" % (vidcap_w, vidcap_h))
+
+    fourcc = vidcap.get(cv2.CAP_PROP_FOURCC)
+    codec = "".join([chr((int(fourcc) >> 8 * i) & 0xFF) for i in range(4)])
+    print("Codec: " + codec)
+
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    print("FPS: " + str(fps))
+
+    backend_name = vidcap.getBackendName()
+    print("Backend: " + backend_name)
 
     return vidcap, vidcap_w, vidcap_h
 
