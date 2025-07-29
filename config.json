@@ -5,5 +5,7 @@
   "fourcc": "mp4v",
   "date_time_fmt": "%Y%m%d_%H%M%S",
   "mp4_filename_fmt": "C:\\Users\\Public\\Videos\\output_%s.mp4",
-  "vidcap_camera_index": 0
+  "vidcap_camera_index": 0,
+  "yt_vidcap_camera_index": "https://www.youtube.com/watch?v=ccTVAhJU5lg",
+  "youtube_stream_key": "720p"
 }

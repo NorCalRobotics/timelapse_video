@@ -5,6 +5,10 @@ import json
 from datetime import datetime
 from signal import signal, SIGINT
 from auto_fix_image_levels import adjust_image_colors
+try:
+    import streamlink
+except ModuleNotFoundError:
+    streamlink = None
 
 # Set up for the script to gracefully exit on SIGINT
 ctrl_c_pressed = False
@@ -16,9 +20,41 @@ def ctrl_c_handler():
     ctrl_c_pressed = True
 
 
+def is_streaming_site(url):
+    if streamlink is None:
+        return False, None
+
+    session = streamlink.Streamlink()
+    print('streamlink version ' + streamlink.__version__)
+    for plugin_name, matcher_list in session.plugins.iter_matchers():
+        for matcher in matcher_list:
+            if matcher.pattern.match(url):
+                return True, plugin_name
+
+    return False, None
+
+
 def get_video_capture(vidcap_camera_index, frame_size, settings):
     # Start capturing video from Camera
-    vidcap = cv2.VideoCapture(vidcap_camera_index)
+    yt_mode, plugin_name = is_streaming_site(vidcap_camera_index)
+    if yt_mode:
+        print(plugin_name + " mode:")
+        if "youtube_stream_key" in settings:
+            youtube_stream_key = settings["youtube_stream_key"]
+            print("From config: youtube_stream_key = '%s'" % youtube_stream_key)
+        else:
+            youtube_stream_key = 'best'
+            print("config doesn't specify youtube_stream_key, using 'best'")
+        streams = streamlink.streams(vidcap_camera_index)
+        print(plugin_name + " vid url: " + vidcap_camera_index)
+        print(plugin_name + " vid streams: " + ", ".join(streams.keys()))
+        url = streams[youtube_stream_key].url
+        print("%s Stream url: %s" % (youtube_stream_key, url))
+        vidcap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
+        vidcap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        vidcap.set(cv2.CAP_PROP_FPS, 20)
+    else:
+        vidcap = cv2.VideoCapture(vidcap_camera_index)
     if "CAP_PROP_CHANNEL" in settings:
         print("Setting video channel: %f" % settings["CAP_PROP_CHANNEL"])
         vidcap.set(cv2.CAP_PROP_CHANNEL, settings["CAP_PROP_CHANNEL"])
@@ -71,11 +107,17 @@ def capture_timelapse_video(** settings):
     instr1 = "Press ESC to exit."
     last_time = time.monotonic()  # None
     frame_count = 0
+    established = False
     frame_count_msg = "%d frames captured" % frame_count
     while not ctrl_c_pressed:
         try:
             # Take each frame
             _, img = vidcap.read()
+            if img is None:
+                if established:
+                    break
+                else:
+                    continue
 
             current_time = time.monotonic()
             if last_time is None or (current_time - last_time) > seconds_per_frame:
@@ -95,7 +137,8 @@ def capture_timelapse_video(** settings):
                 try:
                     cv2.imshow('Color-corrected frame', selected_frame)
                 except cv2.error:
-                    break
+                    if established:
+                        break
 
             cv2.putText(img, instr1, (20, 100), font, 0.4, (255, 255, 255), 1)
             cv2.putText(img, frame_count_msg, (20, 116), font, 0.4, (255, 255, 255), 1)
@@ -107,8 +150,12 @@ def capture_timelapse_video(** settings):
             # Display the frame to the user, creating a live preview window
             try:
                 cv2.imshow('Live preview', img)
-            except cv2.error:
-                break
+                established = True
+            except cv2.error as cv_e:
+                if established:
+                    break
+                else:
+                    print('Warning: ' + cv_e.msg)
 
             k = cv2.waitKey(5) & 0xFF
             if k == 27:
